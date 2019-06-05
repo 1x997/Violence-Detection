@@ -12,4 +12,4 @@ Flask
 
 # Credits
 
-Design and programming by [Emre Kızıltepe](https://github.com/emrekiziltepe) [Murat Karakoç](https://github.com/murat199) and [M. Furkan Tufan](https://github.com/furkantufan).
+Design and programming by [Emre Kızıltepe](https://github.com/emrekiziltepe), [Murat Karakoç](https://github.com/murat199) and [M. Furkan Tufan](https://github.com/furkantufan).
