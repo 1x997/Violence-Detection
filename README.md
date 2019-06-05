@@ -6,7 +6,7 @@ Move save_epoch_10 folder to /ViolenceDetection-master/checkpoints/save_epoch_10
 
 # Install
 
-Tenserflow GPU
+Tensorflow GPU
 
 Flask
 
