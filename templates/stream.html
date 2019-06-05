@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Landing Page - Start Bootstrap Theme</title>
+    <!-- Bootstrap core CSS -->
+    <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom fonts for this template -->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="static/vendor/simple-line-icons/css/simple-line-icons.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+    <!-- Custom styles for this template -->
+    <link href="static/css/landing-page.min.css" rel="stylesheet">
+    <style>
+        .custom-file-input:lang(en) ~ .custom-file-label::after{
+            background-color: #007bff;
+            color: #fff;
+        }
+        .custom-file-label{
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+                <a class="navbar-brand" href="/">
+                    <img src="static/img/nav.png" style="width:40px;" alt="Barış"/>
+                </a>
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">Anasayfa <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/DetectorWebcam">WebCam</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/DetectorStreamGet">Uplaod Video</a>
+                    </li>
+                </ul>
+            </div>    
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row text-center">
+            <h3 style="margin:0 auto;margin-top:20px;color:red;" id="errorMessage"></h3>
+        </div>
+        <div class="row">
+            <div class="col-md-12 text-center box-video">
+                <video style="max-width:640px;width:100%;" controls autoplay>
+                    <source src="" type="video/mp4">
+                    Tarayıcınız bu video uzantısını desteklemiyor!
+                </video>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="custom-file" style="max-width:640px;margin:0 auto;overflow: hidden;">
+                        <input type="file" name="file" accept="video/*" class="custom-file-input" id="customFile">
+                        <label class="custom-file-label" for="customFile">Dosya Seç</label>
+                    </div>
+                    <button type="submit" class="btn btn-block btn-primary" style="max-width:640px;margin:0 auto;">GÖNDER</button>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 text-center" style="padding-top:30px;">
+                <h3 style="color:green" class="result"></h3>
+                <h3 style="color:green" class="resultTime"></h3>
+                <div class="box-fight">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-light" style="width:100%;padding:20px 0px;text-align:center;">
+        <div class="container">
+            <p class="text-muted small mb-4 mb-lg-0">&copy; Your Website 2019. All Rights Reserved.</p>
+        </div>
+    </footer>
+    <!-- Bootstrap core JavaScript -->
+    <script src="static/vendor/jquery/jquery.min.js"></script>
+    <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/socket.io.min.js"></script>
+
+	<script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var counterFightYes=0;
+        var counterFightNo=0;
+        var counterFrame=0;
+        var stateFight=false;
+        var lastTime="";
+        
+        var txtFight="";
+        var start=[];
+        var end=[];
+
+        var counterPush=6000;
+
+        socket.on('SocketVideoSource',function(message){
+            var videoSource=message.path;
+            console.log('Video Source: '+videoSource);
+            $(".box-video video")[0].load();
+            $('.box-video video source').attr('src', 'static/video/'+videoSource);
+        });
+		socket.on('SocketDetectorComplete',function(message){
+            counterFrame++;
+            if(message.isDone!=undefined){
+                if(message.listStart.length == message.listEnd.length){
+                    $(".result").text("ŞİDDET YOK");
+                    $(".result").css("color","green");
+                    $(".resultTime").text(message.time);
+                    $(".resultTime").css("color","green");
+                    counterFightNo++;
+                    console.log("Son Eleman : "+message.listEnd[message.listEnd.length-1]);
+                    if(message.listEnd[message.listEnd.length-1]!=undefined){
+                        if(end.indexOf(message.listEnd[message.listEnd.length-1])==-1){
+                            end.push(message.listEnd[message.listEnd.length-1]);
+                            txtFight=' - Şiddet Bitiş : <span style="color:red">'+message.listEnd[message.listEnd.length-1]+'</span><br/>';
+                            $(".box-fight").append(txtFight);
+                            txtFight="";
+                        }
+                    }
+                }else{
+                    $(".result").text("ŞİDDET VAR");
+                    $(".result").css("color","red");
+                    $(".resultTime").text(message.time);
+                    $(".resultTime").css("color","red");
+                    counterFightYes++;
+                    if(start.indexOf(message.listStart[message.listStart.length-1])==-1){
+                        start.push(message.listStart[message.listStart.length-1]);
+                        txtFight='Şiddet Baslangıç : <span style="color:red">'+message.listStart[message.listStart.length-1]+'</span>';
+                        $(".box-fight").append(txtFight);
+                        txtFight="";
+                    }
+                    if(counterPush/60>=5){
+                        $.ajax({
+                            type: "POST",
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader('Authorization', 'Bearer o.baI8rwqroFcWZlJQj8ocrFJk7wcn3Qam');
+                            },
+                            url: "https://api.pushbullet.com/v2/pushes",
+                            data: {"type": "note", "title": "Şiddet Tespit Edildi!", "body": "Şiddet zamanı : "+message.listStart[message.listStart.length-1]},
+                            success: function(success){
+                                console.log("push notification başarılı")
+                            }
+                        });
+                        counterPush=0;
+                    }
+                }
+            }else{
+                if(message.isFight=='true'){
+                    $(".result").text("ŞİDDET VAR");
+                    $(".result").css("color","red");
+                    $(".resultTime").text(message.time);
+                    $(".resultTime").css("color","red");
+                }else if(message.isFight=='false'){
+                    $(".result").text("ŞİDDET YOK");
+                    $(".result").css("color","green");
+                    $(".resultTime").text(message.time);
+                    $(".resultTime").css("color","green");
+                }
+            }
+		});
+		$(document).ready(function(){
+            $(".custom-file-input").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+                $('.box-fight').empty();
+            });
+            $('#uploadForm').on('submit',function(e){
+                e.preventDefault();
+                setInterval(zamanGoster, 1000);
+				function zamanGoster () {
+					var saat = new Date();
+					counterPush++;
+				}
+                $('.box-fight').empty();
+                $.ajax({
+                    url: '/DetectorStream',
+                    type: 'POST',
+                    data: new FormData(this),
+                    contentType:false,
+                    processData: false,
+                    success: function(response) {
+                        console.log(response);
+                        if(response.isError=="true"){
+                            $("#errorMessage").text(response.message);
+                        }
+                        alert("Tespit Bitti!");
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            })
+		});
+	</script>
+</body>
+</html>
